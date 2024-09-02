@@ -16,8 +16,21 @@ env:
   DRY_RUN: false
 
 jobs:
+  check-secret:
+      runs-on: ubuntu-latest
+      outputs:
+        slack-bot-token-defined: ${{ steps.my-key.outputs.defined }}
+      steps:
+          - id: my-key
+            env:
+                IS_DEFINED: ${{ secrets.SLACK_BOT_TOKEN }}
+            if: "${{ env.IS_DEFINED != '' }}"
+            run: echo "::set-output name=defined::true"
+
   review-docs:
     runs-on: ubuntu-latest
+    needs: [check-secret]
+    if: needs.check-secret.outputs.slack-bot-token-defined == 'true'
 
     steps:
       - name: Checkout repository
